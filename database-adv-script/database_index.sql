@@ -66,10 +66,61 @@ CREATE INDEX idx_property_performance ON Property(host_id, created_at, pricepern
 -- Index for financial reporting
 CREATE INDEX idx_payment_reporting ON Payment(payment_date, payment_method, amount);
 
+-- Performance measurement queries using EXPLAIN and ANALYZE
+
+-- Test query performance BEFORE creating indexes
+EXPLAIN ANALYZE
+SELECT p.property_id, p.name, p.location, p.pricepernight
+FROM Property p
+WHERE p.location = 'New York' AND p.pricepernight BETWEEN 100 AND 300;
+
+EXPLAIN ANALYZE
+SELECT b.booking_id, b.start_date, b.end_date, b.total_price
+FROM Booking b
+WHERE b.start_date >= '2024-01-01' AND b.end_date <= '2024-12-31';
+
+EXPLAIN ANALYZE
+SELECT r.review_id, r.rating, r.comment
+FROM Review r
+WHERE r.rating >= 4;
+
+-- After creating the indexes above, test the same queries again to measure improvement
+
+-- Test query performance AFTER creating indexes
+EXPLAIN ANALYZE
+SELECT p.property_id, p.name, p.location, p.pricepernight
+FROM Property p
+WHERE p.location = 'New York' AND p.pricepernight BETWEEN 100 AND 300;
+
+EXPLAIN ANALYZE
+SELECT b.booking_id, b.start_date, b.end_date, b.total_price
+FROM Booking b
+WHERE b.start_date >= '2024-01-01' AND b.end_date <= '2024-12-31';
+
+EXPLAIN ANALYZE
+SELECT r.review_id, r.rating, r.comment
+FROM Review r
+WHERE r.rating >= 4;
+
+-- Additional performance testing queries
+EXPLAIN ANALYZE
+SELECT u.user_id, u.first_name, u.last_name, COUNT(b.booking_id) as booking_count
+FROM User u
+LEFT JOIN Booking b ON u.user_id = b.user_id
+WHERE u.role = 'guest'
+GROUP BY u.user_id, u.first_name, u.last_name;
+
+EXPLAIN ANALYZE
+SELECT p.property_id, p.name, AVG(r.rating) as avg_rating
+FROM Property p
+LEFT JOIN Review r ON p.property_id = r.property_id
+GROUP BY p.property_id, p.name
+HAVING AVG(r.rating) > 4.0;
+
 -- Show existing indexes (for verification)
--- SHOW INDEX FROM User;
--- SHOW INDEX FROM Property;
--- SHOW INDEX FROM Booking;
--- SHOW INDEX FROM Payment;
--- SHOW INDEX FROM Review;
--- SHOW INDEX FROM Message;
+SHOW INDEX FROM User;
+SHOW INDEX FROM Property;
+SHOW INDEX FROM Booking;
+SHOW INDEX FROM Payment;
+SHOW INDEX FROM Review;
+SHOW INDEX FROM Message;
